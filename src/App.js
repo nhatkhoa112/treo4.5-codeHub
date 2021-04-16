@@ -7,20 +7,22 @@ function App() {
   const [repos, setRepos] = useState([])
   const [pageNumber, setPageNumber] = useState(0)
   const [searchTerm, setSearchTerm] = useState('');
+  const [total,setTotal] = useState(0)
 
-console.log(pageNumber); 
-
-  const onSearchCodeHub = async (e) => {
+  const totalRound = Math.floor(total/30)
+  const onSearchCodeHub = async (e,p) => {
     e.preventDefault();
     const response = await fetch(`  https://api.github.com/search/repositories?q=${searchTerm}&page=${pageNumber}`);
     const json = await response.json();
     setRepos(json.items);
+    setTotal(json.total_count);
+    if(p>1){
+      setPageNumber(p)
+    } else{
+      setPageNumber(1)
+    }
   }
 
-  const onFindPage = (e,p) => {
-    setPageNumber(p)
-    onSearchCodeHub(e);
-  }
 
 
   return (
@@ -88,16 +90,16 @@ console.log(pageNumber);
         </Tab.Container>
         <div className="display">
           <Pagination>
-            <Pagination.First />
-            <Pagination.Prev onClick={(e) => onFindPage(e,pageNumber-1)}/>
-            {pageNumber>1 &&  ( 
-              <Pagination.Item onClick={(e) => onFindPage(e,pageNumber-1)}>
+            <Pagination.First onClick={(e) => onSearchCodeHub(e , 1)} />
+            <Pagination.Prev onClick={(e) => onSearchCodeHub(e , pageNumber-1)}/>
+            {pageNumber > 1 && (<Pagination.Item onClick={(e) => onSearchCodeHub(e,pageNumber-1)}>
                 {pageNumber -1}
-              </Pagination.Item>)}
-            <Pagination.Item active onClick={(e) => onFindPage(e,pageNumber)}>{pageNumber}</Pagination.Item>
-            <Pagination.Item onClick={(e) => onFindPage(e,pageNumber+1)}>{pageNumber +1}</Pagination.Item>
-            <Pagination.Next />
-            <Pagination.Last />
+              </Pagination.Item>)
+              }
+            <Pagination.Item active onClick={(e) => onSearchCodeHub(e,pageNumber)}>{pageNumber}</Pagination.Item>
+            <Pagination.Item onClick={(e) => onSearchCodeHub(e,pageNumber+1)}>{pageNumber +1}</Pagination.Item>
+            <Pagination.Next onClick={(e) => onSearchCodeHub(e , pageNumber+1)} />
+            <Pagination.Last  onClick={(e) => onSearchCodeHub(e , totalRound)} />
           </Pagination>
         </div>
 
