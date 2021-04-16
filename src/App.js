@@ -1,13 +1,18 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
-import  { useState } from 'react';
+import  { useState, useEffect } from 'react';
 import './App.css';
-import {Pagination, Card,Container, Tab, Col,Row, Navbar, Nav, NavDropdown,Form, FormControl, Button  } from 'react-bootstrap';
+import {Container, Tab, Col,Row, Navbar, Nav, NavDropdown,Form, FormControl, Button  } from 'react-bootstrap';
+import PaginationBar from './components/PaginationBar';
+import ReposList from './components/ReposList';
+import MarkdownRenderer from 'react-markdown-renderer';
+
 
 function App() {
   const [repos, setRepos] = useState([])
-  const [pageNumber, setPageNumber] = useState(0)
+  const [pageNumber, setPageNumber] = useState(1)
   const [searchTerm, setSearchTerm] = useState('');
   const [total,setTotal] = useState(0)
+  const [readMe, setReadMe] = useState('')
 
   const totalRound = Math.floor(total/30)
   const onSearchCodeHub = async (e,p) => {
@@ -21,6 +26,27 @@ function App() {
     } else{
       setPageNumber(1)
     }
+  }
+
+
+  const fetchReadMe = async () => {
+    const url = `https://api.github.com/repos${window.location.pathname}/readme`;
+    const response = await fetch(url);
+    const json = await response.json(); 
+    const decodedBase64 = atob(json.content);
+    setReadMe(decodedBase64)
+  }
+
+  useEffect(()=> {
+    fetchReadMe();
+  },[])
+
+  if(window.location.pathname.length >1) {
+    return  (
+    <Container>
+      <MarkdownRenderer markdown={readMe}/>
+    </Container>
+    );
   }
 
 
@@ -66,20 +92,7 @@ function App() {
                 <Col sm={9} lg={9}>
                     <Tab.Content>
                         <Tab.Pane eventKey="first">
-                            <div>
-                              {repos.map((r, index) => {
-                                return <Card key={index}>
-                                        <Card.Header>
-                                          <a href="#">{r.full_name}</a>
-                                          </Card.Header>
-                                        <Card.Body>
-                                          <Card.Text>
-                                            "{r.html_url}"
-                                          </Card.Text>
-                                        </Card.Body>
-                                      </Card>
-                              })}
-                            </div>
+                          <ReposList repos={repos} />
                         </Tab.Pane>
                         <Tab.Pane eventKey="second">
                             <div>Users</div>
@@ -89,18 +102,7 @@ function App() {
             </Row>
         </Tab.Container>
         <div className="display">
-          <Pagination>
-            <Pagination.First onClick={(e) => onSearchCodeHub(e , 1)} />
-            <Pagination.Prev onClick={(e) => onSearchCodeHub(e , pageNumber-1)}/>
-            {pageNumber > 1 && (<Pagination.Item onClick={(e) => onSearchCodeHub(e,pageNumber-1)}>
-                {pageNumber -1}
-              </Pagination.Item>)
-              }
-            <Pagination.Item active onClick={(e) => onSearchCodeHub(e,pageNumber)}>{pageNumber}</Pagination.Item>
-            <Pagination.Item onClick={(e) => onSearchCodeHub(e,pageNumber+1)}>{pageNumber +1}</Pagination.Item>
-            <Pagination.Next onClick={(e) => onSearchCodeHub(e , pageNumber+1)} />
-            <Pagination.Last  onClick={(e) => onSearchCodeHub(e , totalRound)} />
-          </Pagination>
+          <PaginationBar pageNumber={pageNumber} onSearchCodeHub={onSearchCodeHub} totalRound={totalRound}/>
         </div>
 
 
