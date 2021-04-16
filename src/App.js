@@ -10,14 +10,17 @@ function App() {
 
 console.log(pageNumber); 
 
-  const onSearchCodeHub = async (e,p) => {
+  const onSearchCodeHub = async (e) => {
     e.preventDefault();
     const response = await fetch(`  https://api.github.com/search/repositories?q=${searchTerm}&page=${pageNumber}`);
     const json = await response.json();
     setRepos(json.items);
-    setPageNumber(pageNumber+1);
   }
 
+  const onFindPage = (e,p) => {
+    setPageNumber(p)
+    onSearchCodeHub(e);
+  }
 
 
   return (
@@ -86,13 +89,13 @@ console.log(pageNumber);
         <div className="display">
           <Pagination>
             <Pagination.First />
-            <Pagination.Prev onClick={(e)=>onSearchCodeHub(e, pageNumber - 1)}/>
+            <Pagination.Prev onClick={(e) => onFindPage(e,pageNumber-1)}/>
             {pageNumber>1 &&  ( 
-              <Pagination.Item onClick={(e)=>onSearchCodeHub(e,pageNumber - 1)}>
+              <Pagination.Item onClick={(e) => onFindPage(e,pageNumber-1)}>
                 {pageNumber -1}
               </Pagination.Item>)}
-            <Pagination.Item active onClick={(e)=>onSearchCodeHub(e,pageNumber )}>{pageNumber}</Pagination.Item>
-            <Pagination.Item onClick={(e)=>onSearchCodeHub(e,pageNumber +1)}>{pageNumber +1}</Pagination.Item>
+            <Pagination.Item active onClick={(e) => onFindPage(e,pageNumber)}>{pageNumber}</Pagination.Item>
+            <Pagination.Item onClick={(e) => onFindPage(e,pageNumber+1)}>{pageNumber +1}</Pagination.Item>
             <Pagination.Next />
             <Pagination.Last />
           </Pagination>
