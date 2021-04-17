@@ -3,6 +3,7 @@ import { Pagination } from 'react-bootstrap';
 
 
 const PaginationBar = ({pageNumber,onSearchCodeHub, totalRound}) => {
+    if(pageNumber === 0 ) return '';
     return (
         <div>
             <Pagination>

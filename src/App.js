@@ -1,22 +1,33 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import  { useState, useEffect } from 'react';
 import './App.css';
-import {Container, Tab, Col,Row, Navbar, Nav, NavDropdown,Form, FormControl, Button  } from 'react-bootstrap';
+import {Container, Tab, Col,Row, Nav  } from 'react-bootstrap';
 import PaginationBar from './components/PaginationBar';
 import ReposList from './components/ReposList';
+import NavigationBar from './components/NavigationBar';
 import MarkdownRenderer from 'react-markdown-renderer';
+import UserList from './components/UserList';
 
 
 function App() {
+  const [users, setUsers] = useState([]);
   const [repos, setRepos] = useState([])
-  const [pageNumber, setPageNumber] = useState(1)
+  const [pageNumber, setPageNumber] = useState(0)
   const [searchTerm, setSearchTerm] = useState('');
   const [total,setTotal] = useState(0)
   const [readMe, setReadMe] = useState('')
+  const [totalUsers,setTotalUsers] = useState(0)
 
   const totalRound = Math.floor(total/30)
-  const onSearchCodeHub = async (e,p) => {
-    e.preventDefault();
+
+
+  const onSearchGithub = async (e) => {
+    e.preventDefault();  
+    onSearchCodeHub();
+    onSearchUser();
+  }
+  
+  const onSearchCodeHub = async (p) => {
     const response = await fetch(`  https://api.github.com/search/repositories?q=${searchTerm}&page=${pageNumber}`);
     const json = await response.json();
     setRepos(json.items);
@@ -26,6 +37,19 @@ function App() {
     } else{
       setPageNumber(1)
     }
+  }
+  
+  const onSearchUser =  async (p) => {
+    const response = await fetch(`  https://api.github.com/search/users?q=${searchTerm}&page=${pageNumber}`);
+    const json = await response.json();
+    setUsers(json.items);
+    setTotalUsers(json.total_count);
+    if(p>1){
+      setPageNumber(p)
+    } else{
+      setPageNumber(1)
+    }
+
   }
 
 
@@ -53,39 +77,17 @@ function App() {
 
   return (
     <div className="App">
-      <Navbar bg="light" expand="lg">
-          <Navbar.Brand href="#home">CodeHub</Navbar.Brand>
-          <Navbar.Toggle aria-controls="basic-navbar-nav" />
-          <Navbar.Collapse id="basic-navbar-nav">
-              <Nav className="mr-auto">
-              <Nav.Link href="#home">Home</Nav.Link>
-              <Nav.Link href="#link">Link</Nav.Link>
-              <NavDropdown title="Dropdown" id="basic-nav-dropdown">
-                  <NavDropdown.Item href="#action/3.1">Action</NavDropdown.Item>
-                  <NavDropdown.Item href="#action/3.2">Another action</NavDropdown.Item>
-                  <NavDropdown.Item href="#action/3.3">Something</NavDropdown.Item>
-                  <NavDropdown.Divider />
-                  <NavDropdown.Item href="#action/3.4">Separated link</NavDropdown.Item>
-              </NavDropdown>
-              </Nav>
-              <Form onSubmit={onSearchCodeHub} inline>
-                  <FormControl onChange={(e) => setSearchTerm(e.target.value)}  type="text" placeholder="Search" className="mr-sm-2" />
-                  <Button onClick={onSearchCodeHub} variant="outline-success">Search</Button>
-              </Form>
-          </Navbar.Collapse>
-      </Navbar>
-
-    
+      <NavigationBar onSearchGithub={onSearchGithub} setSearchTerm={setSearchTerm} />
       <Container className="mt-3 p-3 border">
         <Tab.Container  id="left-tabs-example" defaultActiveKey="first">
             <Row>
                 <Col sm={3} lg={3}>
                     <Nav variant="pills" className="flex-column">
                         <Nav.Item>
-                        <Nav.Link eventKey="first">Repos</Nav.Link>
+                        <Nav.Link eventKey="first">Repos {total}</Nav.Link>
                         </Nav.Item>
                         <Nav.Item>
-                        <Nav.Link eventKey="second">Users</Nav.Link>
+                        <Nav.Link eventKey="second">Users {totalUsers}</Nav.Link>
                         </Nav.Item>
                     </Nav>
                 </Col>
@@ -95,17 +97,17 @@ function App() {
                           <ReposList repos={repos} />
                         </Tab.Pane>
                         <Tab.Pane eventKey="second">
-                            <div>Users</div>
+                            <div>
+                              <UserList users={users} />
+                            </div>
                         </Tab.Pane>
                     </Tab.Content>
                 </Col>
             </Row>
         </Tab.Container>
         <div className="display">
-          <PaginationBar pageNumber={pageNumber} onSearchCodeHub={onSearchCodeHub} totalRound={totalRound}/>
+          <PaginationBar pageNumber={pageNumber} onSearchGithub={onSearchGithub} totalRound={totalRound}/>
         </div>
-
-
     </Container>
     </div>
   )
